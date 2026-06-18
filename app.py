@@ -1,24 +1,14 @@
 import streamlit as st
 import serial
 
-from google import genai
-from google.genai import types
 
 from datetime import datetime
-import time
 import json
-
-import os
-from dotenv import load_dotenv
 
 
 # =========================================================
 # [구역 1] 환경 설정
 # =========================================================
-
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = "gemini-2.5-flash"
 
 st.set_page_config(page_title="8일간의 아두이노", layout="wide")
 
@@ -27,18 +17,6 @@ st.set_page_config(page_title="8일간의 아두이노", layout="wide")
 # [구역 2] 리소스 및 외부 연결 관리
 # =========================================================
 
-@st.cache_resource
-def get_client():
-    load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY")
-
-    if not api_key:
-        st.error("🔑API 키가 설정되지 않았습니다.")
-        st.stop()
-
-    return genai.Client(api_key=api_key)
-
-client = get_client()
 
 @st.cache_resource
 def get_ser(port):
@@ -61,53 +39,63 @@ else:
 # [구역 3] 상태 초기화
 # =========================================================
 
-if "raw_data" not in st.session_state:
-    st.session_state.raw_data = []
+if "sonar_data" not in st.session_state:
+    st.session_state.sonar_data = []
 
-if "angle" not in st.session_state:
-    st.session_state.angle = 90
+if "current_distance" not in st.session_state:
+    st.session_state.current_distance = None
 
-if "last_sent_angle" not in st.session_state:
-    st.session_state.last_sent_angle = 90
-
-if "current_light" not in st.session_state:
-    st.session_state.current_light = 0
-
+if "threshold" not in st.session_state:
+    st.session_state.threshold = 15
 
 # =========================================================
 # [구역 4] AI 에이전트 및 도구(Tools) 정의
 # =========================================================
-
-def load_system_prompt(file_name):
-    file_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(file_dir, file_name)
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        st.error(f"{file_path}를 찾을 수 없습니다.")
-        st.stop()
-
-if "chat_session" not in st.session_state:
-    system_prompt = load_system_prompt("system_prompt.md")
-    tool_list = []
-    st.session_state.chat_session = client.chats.create(
-        model=MODEL_NAME,
-        config= types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            tools= tool_list,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(
-                disable=False,
-                maximum_remote_calls=7,
-            )
-        ),
-    )
 
 
 # =========================================================
 # [구역 5] 데이터 수집
 # =========================================================
 
+def fetch_data():
+    ser = st.session_state.ser
+    while ser and ser.is_open and ser.in_waiting > 0:
+        try:
+            message = ser.readline().decode("utf-8").strip()
+            payload = json.loads(message)
+
+            sensor_type = payload["type"]
+
+            if sensor_type == "sonar":
+                distance = payload["distance"]
+
+                if 3 <= distance <= 200:
+                    st.session_state.sonar_data.append({
+                            "time": datetime.now(),
+                            "distance": distance,
+                    })
+
+                    st.session_state.current_distance = distance
+
+                    if len(st.session_state.sonar_data) > 200:
+                        st.session_state.sonar_data.pop(0)
+
+        except json.JSONDecodeError as e:
+            continue
+        except Exception as e:
+            print(e)
+
+with st.sidebar:
+    @st.fragment(run_every="0.3s")
+    def collect_data():
+        fetch_data()
+
+        if st.session_state.current_distance is None:
+            st.info(f"아두이노와 연결 중입니다.")
+        else :
+            st.info(f"현재 거리: {st.session_state.current_distance}")
+
+    collect_data()
 
 # =========================================================
 # [구역 6] 페이지 내비게이션 및 앱 실행
@@ -115,7 +103,6 @@ if "chat_session" not in st.session_state:
 
 pages = [
     st.Page("dashboard.py", title="대시보드", icon=":material/dashboard:", default=True),
-    st.Page("chatbot.py", title="챗봇", icon=":material/smart_toy:"),
     st.Page("control.py", title="수동 제어", icon=":material/adjust:"),
 ]
 
