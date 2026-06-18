@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph HW["아두이노 보드"]
+        SENSOR["초음파 센서 HC-SR04<br/>trig=2 · echo=3"]
+        ARD["arduino.ino<br/>200ms 주기 측정"]
+        LED["LED · pin 13"]
+        SENSOR -->|"반사 왕복 시간"| ARD
+        ARD -->|"digitalWrite HIGH/LOW"| LED
+    end
+
+    subgraph ST["Streamlit 앱 (PC)"]
+        APP["app.py<br/>수집 · 필터링"]
+        STATE[("session_state<br/>sonar_data · current_distance · threshold")]
+        DASH["dashboard.py<br/>시각화 · 자동 제어"]
+        CTRL["control.py<br/>수동 제어"]
+        APP --> STATE
+        STATE --> DASH
+        STATE --> CTRL
+    end
+
+    ARD ==>|"sonar 거리 JSON"| APP
+    DASH -.->|"led on/off JSON"| ARD
+    CTRL -.->|"led on/off JSON"| ARD

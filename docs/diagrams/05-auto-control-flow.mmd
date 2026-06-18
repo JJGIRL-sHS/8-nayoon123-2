@@ -1,0 +1,6 @@
+flowchart TD
+    START["0.3초 주기 control_traffic()<br/>(자동 제어 토글 ON)"] --> NONE{"current_distance<br/>가 None 인가?"}
+    NONE -->|예| RET["return (측정값 대기)"]
+    NONE -->|아니오| CMP{"current_distance<br/>< threshold?"}
+    CMP -->|"예 (사람 있음)"| ON["led on 전송<br/>→ LED 켜짐"]
+    CMP -->|"아니오 (사람 없음)"| OFF["led off 전송<br/>→ LED 꺼짐"]
