@@ -1,49 +1,75 @@
 #include <ArduinoJson.h>
-#include <Servo.h>
 
-const int lightPin = A0;
-const int servoPin = 9;
+const int ledPin = 13;
+const int trigPin = 2;
+const int echoPin = 3;
 
 unsigned long lastSentTime = 0;
-const int interval = 1000;
+const int interval = 200;
 
-Servo myServo;
 
 void setup() {
   Serial.begin(115200);
   Serial.setTimeout(50);
 
-  pinMode(lightPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
-  myServo.attach(servoPin);
-
-  myServo.write(90);
 }
 
 void loop() {
-  
   if (Serial.available() > 0) {
     JsonDocument doc;
 
     DeserializationError error = deserializeJson(doc, Serial);
 
     if (!error) {
-      // TODO:
+      if (doc.containsKey("type")) {
+        String type = doc["type"];
 
+        if (type == "led") {
+          if (doc.containsKey("status")) {
+            String status = doc["status"];
+
+            if (status == "on") {
+              digitalWrite(ledPin, HIGH);
+            }
+            else if (status == "off") {
+              digitalWrite(ledPin, LOW);
+            }
+          }
+        }
+      }
     }
   }
 
   unsigned long currentTime = millis();
   if (currentTime - lastSentTime >= interval) {
-    int value = analogRead(lightPin);
+
+    int distance = calculateDistance();
 
     JsonDocument doc;
 
-    // TODO:
+    doc["type"] = "sonar";
+    doc["distance"] = distance;
 
     serializeJson(doc, Serial);
     Serial.println();
 
     lastSentTime = currentTime;
   }
+}
+
+int calculateDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH, 30000);
+  int distance = duration * 0.034 / 2;
+
+  return distance;
 }
