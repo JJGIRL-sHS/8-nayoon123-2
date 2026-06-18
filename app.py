@@ -1,7 +1,6 @@
 import streamlit as st
 import serial
 
-
 from datetime import datetime
 import json
 
@@ -14,15 +13,14 @@ st.set_page_config(page_title="8일간의 아두이노", layout="wide")
 
 
 # =========================================================
-# [구역 2] 리소스 및 외부 연결 관리
+#  리소스 및 외부 연결 관리
 # =========================================================
-
 
 @st.cache_resource
 def get_ser(port):
     try:
         return serial.Serial(port, 115200, timeout=1)
-    except:
+    except serial.SerialException:
         return None
 
 port = st.sidebar.text_input("시리얼 포트", value="COM3")
@@ -32,11 +30,12 @@ st.session_state.ser = get_ser(port)
 if st.session_state.ser is not None:
     st.sidebar.success(f"{port} 연결 성공!")
 else:
+    get_ser.clear()
     st.sidebar.error(f"{port}를 찾을 수 없습니다.")
 
 
 # =========================================================
-# [구역 3] 상태 초기화
+# 상태 초기화
 # =========================================================
 
 if "sonar_data" not in st.session_state:
@@ -48,13 +47,17 @@ if "current_distance" not in st.session_state:
 if "threshold" not in st.session_state:
     st.session_state.threshold = 15
 
-# =========================================================
-# [구역 4] AI 에이전트 및 도구(Tools) 정의
-# =========================================================
+if "last_update" not in st.session_state:
+    st.session_state.last_update = None
 
+if "led_status" not in st.session_state:
+    st.session_state.led_status = None
+
+if "last_command" not in st.session_state:
+    st.session_state.last_command = ""
 
 # =========================================================
-# [구역 5] 데이터 수집
+# 데이터 수집
 # =========================================================
 
 def fetch_data():
@@ -76,6 +79,7 @@ def fetch_data():
                     })
 
                     st.session_state.current_distance = distance
+                    st.session_state.last_update = datetime.now()   # [4] 수신 시각 기록
 
                     if len(st.session_state.sonar_data) > 200:
                         st.session_state.sonar_data.pop(0)
