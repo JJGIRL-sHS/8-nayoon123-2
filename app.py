@@ -25,12 +25,14 @@ def get_ser(port):
 
 port = st.sidebar.text_input("시리얼 포트", value="COM3")
 
+# 직전 실행에서 끊김이 감지되면(ser=None) 죽은/실패한 캐시 핸들을 제거하고 재연결 시도
+if st.session_state.get("ser") is None:
+    get_ser.clear()
 st.session_state.ser = get_ser(port)
 
 if st.session_state.ser is not None:
     st.sidebar.success(f"{port} 연결 성공!")
 else:
-    get_ser.clear()
     st.sidebar.error(f"{port}를 찾을 수 없습니다.")
 
 
