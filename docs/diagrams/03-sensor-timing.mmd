@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant T as Trig 핀 (2)
+    participant SE as 초음파 센서
+    participant O as 물체
+    participant E as Echo 핀 (3)
+
+    T->>SE: HIGH 10µs 펄스
+    SE->>O: 초음파 8펄스 발사
+    O-->>SE: 반사
+    SE->>E: Echo HIGH 유지 = 왕복 시간 t
+    Note over E: distance = t × 0.034 / 2 (cm)

@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant S as 초음파 센서
+    participant A as 아두이노
+    participant ST as Streamlit
+
+    loop 200ms 주기
+        S->>A: 반사파 (왕복 시간)
+        A->>ST: {"type":"sonar","distance":35}
+    end
+
+    Note over ST: 측정 거리와 임계값 비교
+    ST->>A: {"type":"led","status":"on"}
+    A->>A: digitalWrite(13, HIGH)
+    ST->>A: {"type":"led","status":"off"}
+    A->>A: digitalWrite(13, LOW)

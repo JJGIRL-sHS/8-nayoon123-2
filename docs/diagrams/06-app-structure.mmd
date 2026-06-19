@@ -1,0 +1,12 @@
+flowchart TD
+    subgraph APP["app.py (메인)"]
+        C1["[구역1] set_page_config"]
+        C2["[구역2] get_ser() 시리얼 연결<br/>@st.cache_resource"]
+        C3["[구역3] 상태 초기화<br/>sonar_data · current_distance · threshold=15"]
+        C5["[구역5] 사이드바 collect_data()<br/>@st.fragment 0.3s → fetch_data()"]
+        C6["[구역6] st.navigation"]
+        C1 --> C2 --> C3 --> C5 --> C6
+    end
+
+    C6 --> DASH["dashboard.py<br/>display_data() 0.3s 시각화<br/>control_traffic() 0.3s 자동 제어"]
+    C6 --> CTRL["control.py<br/>On / Off 버튼 수동 제어"]

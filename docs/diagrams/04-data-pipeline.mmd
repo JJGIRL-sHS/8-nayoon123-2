@@ -1,0 +1,15 @@
+flowchart TD
+    START["0.3초 주기 fetch_data()"] --> WAIT{"수신 버퍼에<br/>데이터가 있는가?"}
+    WAIT -->|아니오| END["대기"]
+    WAIT -->|예| READ["readline() 후 디코딩"]
+    READ --> PARSE{"JSON 파싱<br/>성공?"}
+    PARSE -->|실패| WAIT
+    PARSE -->|성공| TYPE{"type 이<br/>sonar 인가?"}
+    TYPE -->|아니오| WAIT
+    TYPE -->|예| FILTER{"3 ≤ distance ≤ 200?"}
+    FILTER -->|"아니오 (노이즈)"| WAIT
+    FILTER -->|예| APPEND["time + distance 저장<br/>current_distance 갱신"]
+    APPEND --> CAP{"저장 개수<br/>> 200?"}
+    CAP -->|예| POP["pop(0) 으로<br/>오래된 데이터 삭제"]
+    CAP -->|아니오| WAIT
+    POP --> WAIT
