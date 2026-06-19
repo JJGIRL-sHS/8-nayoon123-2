@@ -1,5 +1,6 @@
 #include <ArduinoJson.h>
 
+// 신호등 LED 모듈(4핀): 빨강(R)=13 사용. 노랑(Y)=12·초록(G)=11은 배선만(미사용).
 const int ledPin = 13;
 const int trigPin = 2;
 const int echoPin = 3;

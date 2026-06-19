@@ -12,7 +12,7 @@
 | `04-data-pipeline` | flowchart | `fetch_data()` 데이터 수집 · 필터링 파이프라인 |
 | `05-auto-control-flow` | flowchart | `control_traffic()` 자동 제어 판단 흐름도 |
 | `06-app-structure` | flowchart | Streamlit 앱 구조 (app.py → dashboard.py / control.py) |
-| `07-wiring-diagram` | 연결도(수기 SVG) | 회로 배선도 — Arduino Uno ↔ HC-SR04 ↔ LED 핀 연결 |
+| `07-wiring-diagram` | 연결도(수기 SVG) | 회로 배선도 — Arduino Uno ↔ HC-SR04 ↔ 신호등 LED 모듈 핀 연결 |
 
 01~06번 다이어그램은 `*.mmd`(Mermaid 소스) → `*.svg`(벡터) → `*.png`(2배 해상도) 세 가지로 제공됩니다.
 07번 회로 배선도는 Mermaid로 표현이 어려워 **손수 작성한 SVG**(`.mmd` 없음)에서 PNG를 뽑았습니다.
